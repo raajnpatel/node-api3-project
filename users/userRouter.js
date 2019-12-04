@@ -4,7 +4,24 @@ const User = require('./userDb');
 const router = express.Router();
 
 router.post('/', (req, res) => {
-  // do your magic!
+    const { name } = req.body;
+    if(!name) {
+        return res
+            .status(400)
+            .json({error:"You must provide a name."})
+    }
+  User.insert({name})
+      .then(user => {
+          res
+              .status(200)
+              .json(user)
+      })
+      .catch(error => {
+          console.log(error);
+          res
+              .status(500)
+              .json({error:"There was a problem reaching the server."})
+      })
 });
 
 router.post('/:id/posts', (req, res) => {
@@ -18,7 +35,7 @@ router.get('/', (req, res) => {
               .status(200)
               .json(users)
       })
-      .catch(error=> {
+      .catch(error => {
           console.log(error);
           res
               .status(500)
@@ -36,8 +53,23 @@ router.get('/:id/posts', (req, res) => {
     const { id } = req.params;
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', validateUserId, (req, res) => {
     const { id } = req.params;
+    User.remove(id)
+        .then(()=> {
+            res
+                .status(204)
+                .json({message:"The entry has been deleted."})
+                .end();
+        })
+        .catch(error => {
+            console.log(error);
+            res
+                .status(500)
+                .json({error:"There was a problem reaching the server."})
+            }
+        )
+
 });
 
 router.put('/:id', validateUserId, (req, res) => {
@@ -45,9 +77,25 @@ router.put('/:id', validateUserId, (req, res) => {
     const { name } = req.body;
     User.update(id, {name})
         .then(updated => {
+            if(updated){
+                User.getById(id)
+                    .then(user => {
+                        res
+                            .status(200)
+                            .json(user)
+                    })
+                    .catch(error => {
+                        console.log(error);
+                        res
+                            .status(400)
+                            .json({error:"Error retrieving User with that ID."})
+                    })}
+        })
+        .catch(error => {
+            console.log(error);
             res
-                .status(200)
-                .json(updated)
+                .status(500)
+                .json({error:"There was a problem reaching the server."})
         })
 });
 
