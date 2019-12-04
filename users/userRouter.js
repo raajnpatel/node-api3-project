@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('./userDb');
+const Post = require('../posts/postDb');
 
 const router = express.Router();
 
@@ -19,8 +20,21 @@ router.post('/', validateUser, (req, res) => {
       })
 });
 
-router.post('/:id/posts', (req, res) => {
-    const { id } = req.params;
+router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
+    const post = req.body;
+    Post.insert(post)
+        .then(post => {
+            console.log(post);
+        res
+            .status(201)
+            .json(post)
+        })
+        .catch(error => {
+            console.log(error);
+            res
+                .status(500)
+                .json({error:"There was a problem reaching the server."})
+        })
 });
 
 router.get('/', (req, res) => {
@@ -132,20 +146,33 @@ function validateUserId(req, res, next) {
 
 function validateUser(req, res, next) {
     const { name } = req.body;
-    if(!name) {
+    if(!req.body) {
         return res
             .status(400)
-            .json({error:"You must provide a name."})
-    } else if(typeof name !== 'string'){
+            .json({error:"Missing user data."})
+    } else if(typeof name !== 'string' || !name){
         return res
             .status(400)
-            .json({error:"You must use a string."})
+            .json({error:"Missing required text(user) field."})
     }
     next();
 }
 
 function validatePost(req, res, next) {
-  // do your magic!
+    const { id: user_id } = req.params;
+    const { text } = req.body;
+
+    if(!req.body){
+        return res
+            .status(400)
+            .json({message:"Missing post data."})
+    } else if (typeof text !== 'string' || !text){
+        return res
+            .status(400)
+            .json({message:"Missing required text(post) field."})
+    }
+    req.body = { user_id, text };
+    next();
 }
 
 module.exports = router;
