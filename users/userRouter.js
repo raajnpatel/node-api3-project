@@ -3,17 +3,12 @@ const User = require('./userDb');
 
 const router = express.Router();
 
-router.post('/', (req, res) => {
-    const { name } = req.body;
-    if(!name) {
-        return res
-            .status(400)
-            .json({error:"You must provide a name."})
-    }
-  User.insert({name})
+router.post('/', validateUser, (req, res) => {
+    const user = req.body;
+  User.insert(user)
       .then(user => {
           res
-              .status(200)
+              .status(201)
               .json(user)
       })
       .catch(error => {
@@ -136,7 +131,17 @@ function validateUserId(req, res, next) {
 }
 
 function validateUser(req, res, next) {
-  // do your magic!
+    const { name } = req.body;
+    if(!name) {
+        return res
+            .status(400)
+            .json({error:"You must provide a name."})
+    } else if(typeof name !== 'string'){
+        return res
+            .status(400)
+            .json({error:"You must use a string."})
+    }
+    next();
 }
 
 function validatePost(req, res, next) {
