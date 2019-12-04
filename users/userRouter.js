@@ -49,8 +49,21 @@ router.get('/:id', validateUserId, (req, res) => {
             .json(req.user)
 });
 
-router.get('/:id/posts', (req, res) => {
+router.get('/:id/posts', validateUserId, (req, res) => {
     const { id } = req.params;
+    User.getUserPosts(id)
+        .then(posts => {
+            console.log(posts);
+            res
+                .status(200)
+                .json(posts)
+        })
+        .catch(error => {
+            console.log(error);
+            res
+                .status(500)
+                .json({error:"There was a problem reaching the server."})
+        })
 });
 
 router.delete('/:id', validateUserId, (req, res) => {
