@@ -4,6 +4,7 @@ import UserCard from "./UserCard";
 
 const UserList = () => {
     const [userList, setUserList] = useState([]);
+    const [postList, setPostList] = useState([]);
 
     useEffect(() => {
         axios
@@ -27,7 +28,10 @@ const UserList = () => {
     const detailsUser = id => {
         axios
             .get(`http://localhost:4444/api/users/${id}/posts`)
-            .then(res => console.log(res))
+            .then(res => {
+                console.log(res);
+                setPostList(res.data)
+                })
             .catch(err => console.log(err.response));
     };
 
